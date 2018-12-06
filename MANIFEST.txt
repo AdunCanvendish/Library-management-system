@@ -1,0 +1,10 @@
+Library management system
+CODE.txt
+FAQ.txt
+INSTALL.txt
+TAGS.txt
+CREDITS.txt
+HISTORY.txt
+COPYING.txt
+LICENS.txt
+MANIFEST.txt
