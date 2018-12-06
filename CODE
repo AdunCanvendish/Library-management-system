@@ -1,0 +1,537 @@
+#include<iostream> 
+#include <iomanip> 
+#include <string> 
+#include <fstream>
+using namespace std;
+const int Maxr = 1000;
+const int Maxb = 1000;
+const int Maxbor = 10;				 
+class Reader
+{
+private:
+	int flag; 
+	int no;
+	char name[10]; 
+	int borbook[Maxbor];
+	char mima[6];
+	char borname[10][Maxbor];
+public:
+	Reader() {}
+	char *getname() { return name; } 
+	int getflag() { return flag; } 
+	int getno() { return no; } 
+	char *getmi() { return mima; }
+	void setname(char na[]) 
+	{
+		strcpy(name, na);
+	}
+	void setmi(char mi[])
+	{
+		strcpy(mima, mi);
+	}
+	void delbook() { flag = 0; }
+	void addreader(int n, char *na, char *mi)
+	{
+		flag = 1;
+		no = n;
+		strcpy(name, na);
+		strcpy(mima, mi);
+		for (int i = 0; i < Maxbor; i++)
+		{
+			borbook[i] = 0;
+			strcpy(borname[i], " ");
+		}
+	}
+	void borrowbook(int books, char *bor)
+	{
+		for (int i = 0; i<Maxbor; i++)
+		{
+			if (borbook[i] == 0)
+			{
+				borbook[i] = books;
+				strcpy(borname[i], bor);
+				return;
+			}
+		}
+	}
+	int retbook(int books)
+	{
+		for (int i = 0; i<Maxbor; i++)
+		{
+			if (borbook[i] == books)
+			{
+				borbook[i] = 0;
+				strcpy(borname[i], " ");
+				return 1;
+			}
+		}
+		return 0;
+	}
+	void disp()
+	{
+		cout << setw(5) << no << setw(10) << name << "借书编号：";
+		for (int i = 0; i<Maxbor; i++)
+			if (borbook[i] != 0)
+				cout << borbook[i] << "|";
+	}
+};
+class Rbase
+{
+private:
+	int cp; 
+	Reader read[Maxr];
+public:
+	Rbase()
+	{
+		Reader s;
+		cp = -1;
+		fstream file("E:\\reader.txt", ios::in);
+		while (1)
+		{
+			file.read((char *)&s, sizeof(s));
+			if (!file)break;
+			cp++;
+			read[cp] = s;
+		}
+		file.close(); 
+	}
+	int addreader(int n, char *na, char *mi)
+	{
+		Reader *p = find(n);
+		if (p == NULL)
+		{
+			cp++;
+			read[cp].addreader(n, na, mi);
+			return 1;
+		}
+		return 0;
+	}
+	Reader *find(int readers)
+	{
+		for (int i = 0; i <= cp; i++)
+			if (read[i].getno() == readers &&
+				read[i].getflag() == 1)
+			{
+				return &read[i];
+			}
+		return NULL;
+	}
+	void disp()
+	{
+		for (int i = 0; i <= cp; i++)
+			read[i].disp();
+	}
+	void readerdata()
+	{
+		char choice = '1';
+		char rname[20];
+		int readers;
+		Reader *r;
+		char mi[6];
+		while (choice != '0')
+		{
+			cout << "\n\n\t\t\t读者\n\n\n\t\t 1 新增读者\n\n\t\t2 更改读者\n\n\t\t 3 删除读者\n\n\t\t4 查找读者\n\n\t\t 5 显示读者\n\n\t\t 0 退出" << endl;
+			cin >> choice;
+			switch (choice)
+			{
+			case '1':
+				cout << "输入读者编号:";
+				cin >> readers;
+				cout << "输入读者姓名:";
+				cin >> rname;
+				cout << "输入密码:";
+				cin >> mi;
+				addreader(readers, rname, mi);
+				break;
+			case '2':
+				cout << "输入读者编号:";
+				cin >> readers;
+				r = find(readers);
+				if (r == NULL)
+				{
+					cout << " 该读者不存在 " << endl;
+					break;
+				}
+				cout << "输入新的姓名:";
+				cin >> rname;
+				r->setname(rname);
+				cout << "输入新密码:";
+				cin >> mi;
+				r->setmi(mi);
+				break;
+			case '3':
+				cout << " 输入读者编号:";
+				cin >> readers;
+				r = find(readers);
+				if (r == NULL)
+				{
+					cout << " 该读者不存在" << endl;
+					break;
+				}
+				r->delbook();
+				break;
+			case '4':
+				cout << "读入读者编号:";
+				cin >> readers;
+				r = find(readers);
+				if (r == NULL)
+				{
+					cout << "该读者不存在" << endl;
+					break;
+				}
+				r->disp();
+				break;
+			case '5':
+				disp();
+				break;
+			default:cout << "返回："; break;
+			}
+		}
+	}
+	~Rbase()
+	{
+		fstream file("E:\\reader.txt", ios::out);
+		for (int i = 0; i <= cp; i++)
+			if (read[i].getflag() == 1)
+				file.write((char *)&read[i], sizeof(read[i]));
+		file.close();
+	}
+};
+class Book
+{
+private:
+	int flag;
+	int no;
+	char name[20];
+	int can;
+	int total;
+public:
+	Book() {}
+	char *getname() { return name; }
+	int getno() { return no; }
+	int getflag() { return flag; }
+	void setname(char na[])
+	{
+		strcpy(name, na);
+	}
+	void settotal(int to)
+	{
+		total = to;
+	}
+	void setcan(int c)
+	{
+		can = c;
+	}
+	void delbook() { flag = 0; }
+	void addbook(int n, char *na, int to)
+	{
+		flag = 1;
+		no = n;
+		strcpy(name, na);
+		total = to;
+		can = total;
+	}
+	int borrowbook()
+	{
+		if (can != 0)
+		{
+			can--;
+			return 1;
+		}
+		return 0;
+	}
+	void retbook() 
+	{
+		can++;
+	}
+	void disp()
+	{
+		cout << setw(6) << no << setw(18) << name << setw(10)
+			<< (can != 0 ? "在架" : "已借") << setw(10) << can << endl;
+	}
+	void show()
+	{
+		int i = 0;
+		i = total - can;
+		cout << setw(6) << no << setw(18) << name << setw(10) << setw(6) << "已借:" << i << "剩余:" << can << endl;
+	}
+};
+class Bbase
+{
+private:
+	int cp; 
+	Book book[Maxb]; 
+public:
+	Bbase()
+	{
+		Book b;
+		cp = -1;
+		fstream file("E:\\book.txt", ios::in);
+		while (1)
+		{
+			file.read((char *)&b, sizeof(b));
+			if (!file) break;
+			cp++;
+			book[cp] = b;
+		}
+		file.close();
+	}
+	int addbook(int n, char *na, int to)
+	{
+		Book *p = find(n);
+		if (NULL == p)
+		{
+			cp++;
+			book[cp].addbook(n, na, to);
+			return 1;
+		}
+		return 0;
+	}
+	Book *find(int books)
+	{
+		for (int i = 0; i <= cp; i++)
+			if (book[i].getno() == books && book[i].getflag() == 1)
+			{
+				return &book[i];
+			}
+		return NULL;
+	}
+	void bookdata()
+	{
+		char choice = '1';
+		char bname[40];
+		int books;
+		int to;
+		Book *b;
+		int bcan;
+		int bto;
+		while (choice != '0')
+		{
+			cout << "\n\n\n\t\t\t图书 " << endl << endl;
+			cout << "\t\t1 新增图书\n \t\t2 更改图书\n\t\t3 删除图书\n\t\t4 查找图书\n\t\t5 显示图书\n\t\t6 建立图书库\n\t\t0 退出" << endl;
+			cin >> choice;
+			switch (choice)
+			{
+			case '1':
+				cout << "输入图书编号:" << endl;
+				cin >> books;
+				cout << "输入图书书名:" << endl;
+				cin >> bname;
+				cout << "量:";
+				cin >> to;
+				addbook(books, bname, to);
+				break;
+			case '2':
+				cout << "输入图书编号:" << endl;
+				cin >> books;
+				b = find(books);
+				if (b == NULL)
+				{
+					cout << " 该图书不存在 " << endl;
+					break;
+				}
+				cout << "输入新的书名:" << endl;
+				cin >> bname;
+				b->setname(bname);
+				cout << "输入新量:" << endl;
+				cin >> bto;
+				b->settotal(bto);
+				cout << "输入可借粮:" << endl;
+				cin >> bcan;
+				b->setcan(bcan);
+				break;
+			case '3':
+				cout << " 读入图书编号:" << endl;
+				cin >> books;
+				b = find(books);
+				if (b == NULL)
+				{
+					cout << " 该图书不存在" << endl;
+					break;
+				}
+				b->delbook();
+				break;
+			case '4':
+				cout << " 读入图书编号:" << endl;
+				cin >> books;
+				b = find(books);
+				if (b == NULL)
+				{
+					cout << " 该图书不存在" << endl;
+					break;
+				}
+				b->disp();
+				break;
+			case '5':
+				disp();
+				break;
+			case '6':
+				cout << "种类:";
+				int zhonglei;
+				cin >> zhonglei;
+				for (int i = 0; i < zhonglei; i++)
+				{
+					cout << "输入图书编号:" << endl;
+					cin >> books;
+					cout << "输入图书书名:" << endl;
+					cin >> bname;
+					cout << "量:";
+					cin >> to;
+					addbook(books, bname, to);
+				}
+				break;
+			default:cout << "输入结束";
+			}
+		}
+	}
+	void disp()
+	{
+		for (int i = 0; i <= cp; i++)
+			if (book[i].getflag() == 1)
+				book[i].disp();
+	}
+	void show()
+	{
+		for (int i = 0; i <= cp; i++)
+			if (book[i].getflag() == 1)
+				book[i].show();
+	}
+	~Bbase()
+	{
+		fstream file("E:\\book.txt", ios::out);
+		for (int i = 0; i <= cp; i++)
+			if (book[i].getflag() == 1)
+				file.write((char *)&book[i], sizeof(book[i]));
+		file.close();
+	}
+};
+int main()
+{
+	char choice = '1';
+	int books, readers;
+	Rbase reader;
+	Reader *r;
+	Bbase book;
+	Book *b;
+	char mi[6];
+	char mima[6] = "12345";
+	fstream infile("E:\\mima.txt", ios::in);
+	if (!infile)
+		cout << "打开失败";
+	else
+		infile.read((char*)mima, sizeof(char) * 6);
+	infile.close();
+	while (choice != '0')
+	{
+		cout << endl << endl << "\t\t\t 图书管理系统\n\n\n";
+		cout << "\t\t\t1 管理员界面\n\n\t\t\t2 学生界面\n\n\t\t\t0 离开" << endl;
+		cin >> choice;
+		switch (choice)
+		{
+		case '1':
+			cout << "输入密码:";
+			cin >> mi;
+			if (strcmp(mi, mima)!=0)
+			{
+				cout << "error" << endl;
+				break;
+			}
+				cout << endl << endl << "\t\t\t 图书管理系统\n\n\n";
+				cout << "\n\n\t\t\t1 图书\n\n\t\t\t2 读者\n\n\t\t\t3 修改密码\n\n\t\t\t0 离开" << endl;
+				cin >> choice;
+				switch (choice)
+				{
+				case '1':
+					book.bookdata();
+					break;
+				case '2':
+					reader.readerdata();
+					break;
+				case '3':
+					cout << "密码:";
+					cin >> mima;
+					cout << "成功";
+					break;
+				}
+			break;
+		case '2':
+			cout << "读者编号:";
+			cin >> readers;
+			r = reader.find(readers);//按编号查找 
+			if (NULL == r)
+			{
+				cout << " 不存在该读者" << endl;
+				break;
+			 }
+			cout << "密码:";
+			cin >> mi;
+			if (strcmp(mi, r->getmi())!=0)
+			{
+				cout << "error" << endl;
+				break;
+			}
+				cout << endl << endl << "\t\t\t 图书管理系统\n\n\n";
+				cout << "\n\n\t\t\t1 借书\n\n\t\t\t2 还书\n\n\t\t\t3 查书\n\n\t\t\t4 密码\n\n\t\t\t5 借阅信息\n\n\t\t\t0 离开" << endl;
+				cin >> choice;
+				switch (choice)
+				{
+				case '1':
+					cout << " 图书编号： ";
+					cin >> books;
+					b = book.find(books);
+					if (b == NULL)
+					{
+						cout << " 不存在该图书，不能借书" << endl;
+						break;
+					}
+					if (b->borrowbook() == 0)
+					{
+						cout << " 该图书已借出，不能借书" << endl;
+						break;
+					}
+					r->borrowbook(b->getno(), b->getname());
+					cout << "成功";
+					break;
+				case '2':
+					cout << " 图书编号： ";
+					cin >> books;
+					b = book.find(books);
+					if (b == NULL)
+					{
+						cout << " 不存在该图书，不能还书" << endl;
+						break;
+					}
+					b->retbook();
+					r->retbook(b->getno());
+					cout << "成功";
+					break;
+				case '3':
+					cout << " 图书编号： ";
+					cin >> books;
+					b = book.find(books);
+					if (b == NULL)
+					{
+						cout << " 不存在该图书，不能还书" << endl;
+						break;
+					}
+					b->disp();
+					break;
+				case '4':
+					cout << "新密码:";
+					cin >> mi;
+					r->setmi(mi);
+					cout << "成功";
+					break;
+				case '5':
+					book.show();
+					break;
+				}
+			break;
+		default:cout << "输入结束";
+		}
+	}
+	fstream outfile("E:\\mima.txt", ios::out);
+	outfile.write((char*)mima, sizeof(char) * 6);
+	outfile.close();
+	return 0;
+}
